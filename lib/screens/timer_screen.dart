@@ -7,6 +7,7 @@ import '../providers/tournament_provider.dart';
 import '../widgets/countdown_display.dart';
 import '../widgets/blind_info_display.dart';
 import '../widgets/control_buttons.dart';
+import 'help_screen.dart';
 import 'setup_screen.dart';
 
 class TimerScreen extends StatefulWidget {
@@ -94,7 +95,20 @@ class _TimerScreenState extends State<TimerScreen> {
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
+          // Help button
+          IconButton(
+            icon: const Icon(
+              Icons.help_outline_rounded,
+              color: Colors.white54,
+              size: 26,
+            ),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const HelpScreen()),
+            ),
+            tooltip: 'Holdem Guide',
+          ),
           // Fullscreen toggle
           IconButton(
             icon: Icon(
