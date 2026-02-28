@@ -17,35 +17,37 @@ class ControlButtons extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Main controls row
+        // Main controls row (hide prev/next for cash game)
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Previous level
-            _ControlButton(
-              icon: Icons.skip_previous_rounded,
-              onTap: provider.currentLevelIndex > 0 ? provider.previousLevel : null,
-              size: buttonSize,
-              iconSize: iconSize,
-            ),
-            const SizedBox(width: 16),
+            if (!provider.isCashGame) ...[
+              _ControlButton(
+                icon: Icons.skip_previous_rounded,
+                onTap: provider.currentLevelIndex > 0 ? provider.previousLevel : null,
+                size: buttonSize,
+                iconSize: iconSize,
+              ),
+              const SizedBox(width: 16),
+            ],
             // Play / Pause
             _ControlButton(
               icon: provider.isRunning ? Icons.pause_rounded : Icons.play_arrow_rounded,
-              onTap: provider.toggleStartPause,
+              onTap: provider.structure.levels.isNotEmpty ? provider.toggleStartPause : null,
               size: buttonSize * 1.4,
               iconSize: iconSize * 1.4,
               isPrimary: true,
               color: provider.isRunning ? Colors.orange : Colors.green,
             ),
-            const SizedBox(width: 16),
-            // Next level
-            _ControlButton(
-              icon: Icons.skip_next_rounded,
-              onTap: !provider.isLastLevel ? provider.nextLevelManual : null,
-              size: buttonSize,
-              iconSize: iconSize,
-            ),
+            if (!provider.isCashGame) ...[
+              const SizedBox(width: 16),
+              _ControlButton(
+                icon: Icons.skip_next_rounded,
+                onTap: !provider.isLastLevel ? provider.nextLevelManual : null,
+                size: buttonSize,
+                iconSize: iconSize,
+              ),
+            ],
           ],
         ),
         const SizedBox(height: 12),
@@ -53,24 +55,27 @@ class ControlButtons extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _SmallButton(
-              label: '-1 min',
-              onTap: provider.remainingSeconds > 60 ? provider.subtractMinute : null,
-            ),
-            const SizedBox(width: 8),
-            _SmallButton(
-              label: '+1 min',
-              onTap: provider.addMinute,
-            ),
-            const SizedBox(width: 16),
-            _ControlButton(
-              icon: provider.soundEnabled ? Icons.volume_up_rounded : Icons.volume_off_rounded,
-              onTap: provider.toggleSound,
-              size: buttonSize * 0.7,
-              iconSize: iconSize * 0.7,
-              color: provider.soundEnabled ? Colors.white54 : Colors.red.shade300,
-            ),
-            const SizedBox(width: 8),
+            if (!provider.isInfiniteLevel) ...[
+              _SmallButton(
+                label: '-1 min',
+                onTap: provider.remainingSeconds > 60 ? provider.subtractMinute : null,
+              ),
+              const SizedBox(width: 8),
+              _SmallButton(
+                label: '+1 min',
+                onTap: provider.addMinute,
+              ),
+              const SizedBox(width: 16),
+            ],
+            if (!provider.isCashGame)
+              _ControlButton(
+                icon: provider.soundEnabled ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+                onTap: provider.toggleSound,
+                size: buttonSize * 0.7,
+                iconSize: iconSize * 0.7,
+                color: provider.soundEnabled ? Colors.white54 : Colors.red.shade300,
+              ),
+            if (!provider.isCashGame) const SizedBox(width: 8),
             _ControlButton(
               icon: Icons.restart_alt_rounded,
               onTap: () => _showResetDialog(context, provider),

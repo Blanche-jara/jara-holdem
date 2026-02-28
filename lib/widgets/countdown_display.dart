@@ -11,12 +11,22 @@ class CountdownDisplay extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final timerFontSize = (screenWidth * 0.15).clamp(48.0, 180.0);
 
+    if (provider.structure.levels.isEmpty) {
+      return Text(
+        'No levels configured',
+        style: TextStyle(
+          fontSize: (screenWidth * 0.04).clamp(18.0, 48.0),
+          color: Colors.white38,
+        ),
+      );
+    }
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         // Level indicator
         Text(
-          provider.isBreak ? 'BREAK' : 'LEVEL ${provider.displayLevelNumber}',
+          _getLevelLabel(provider),
           style: TextStyle(
             fontSize: (screenWidth * 0.04).clamp(18.0, 48.0),
             fontWeight: FontWeight.w300,
@@ -25,7 +35,7 @@ class CountdownDisplay extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        // Big countdown timer
+        // Big timer
         Text(
           provider.formattedTime,
           style: TextStyle(
@@ -42,26 +52,43 @@ class CountdownDisplay extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        // Progress bar
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: provider.progress,
-              minHeight: 6,
-              backgroundColor: Colors.white12,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                provider.isBreak ? Colors.amber : Colors.green,
+        // Progress bar (hidden for cash game)
+        if (!provider.isInfiniteLevel)
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: provider.progress,
+                minHeight: 6,
+                backgroundColor: Colors.white12,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  provider.isBreak ? Colors.amber : Colors.green,
+                ),
               ),
             ),
           ),
-        ),
+        if (provider.isInfiniteLevel)
+          Text(
+            'ELAPSED',
+            style: TextStyle(
+              fontSize: (screenWidth * 0.02).clamp(10.0, 20.0),
+              color: Colors.white24,
+              letterSpacing: 6,
+            ),
+          ),
       ],
     );
   }
 
+  String _getLevelLabel(TournamentProvider provider) {
+    if (provider.isBreak) return 'BREAK';
+    if (provider.isCashGame) return 'CASH GAME';
+    return 'LEVEL ${provider.displayLevelNumber}';
+  }
+
   Color _getTimerColor(TournamentProvider provider) {
+    if (provider.isInfiniteLevel) return Colors.cyan;
     if (provider.isBreak) return Colors.amber;
     if (provider.remainingSeconds <= 10) return Colors.red;
     if (provider.remainingSeconds <= 60) return Colors.orange;

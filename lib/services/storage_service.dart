@@ -21,6 +21,7 @@ class StorageService {
   Future<void> saveState({
     required int currentLevelIndex,
     required int remainingSeconds,
+    int elapsedSeconds = 0,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(
@@ -28,6 +29,7 @@ class StorageService {
       jsonEncode({
         'currentLevelIndex': currentLevelIndex,
         'remainingSeconds': remainingSeconds,
+        'elapsedSeconds': elapsedSeconds,
         'savedAt': DateTime.now().toIso8601String(),
       }),
     );

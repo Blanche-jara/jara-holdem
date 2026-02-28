@@ -24,7 +24,11 @@ class _TimerScreenState extends State<TimerScreen> {
     final isBreak = provider.isBreak;
 
     return Scaffold(
-      backgroundColor: isBreak ? const Color(0xFF1A1500) : const Color(0xFF0A1A0A),
+      backgroundColor: provider.isCashGame
+          ? const Color(0xFF0A1520)
+          : isBreak
+              ? const Color(0xFF1A1500)
+              : const Color(0xFF0A1A0A),
       body: SafeArea(
         child: Column(
           children: [
