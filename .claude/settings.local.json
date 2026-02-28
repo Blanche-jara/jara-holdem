@@ -5,7 +5,9 @@
       "Bash(flutter pub add provider shared_preferences audioplayers)",
       "Bash(flutter pub add intl)",
       "Bash(flutter build web)",
-      "Bash(flutter pub add google_fonts)"
+      "Bash(flutter pub add google_fonts)",
+      "Bash(dart analyze lib/screens/help_screen.dart)",
+      "Bash(flutter pub get)"
     ]
   }
 }
