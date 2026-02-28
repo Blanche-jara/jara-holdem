@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:web/web.dart' as web;
@@ -64,17 +65,18 @@ class _TimerScreenState extends State<TimerScreen> {
 
   Widget _buildTopBar(TournamentProvider provider) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
       child: Row(
         children: [
           // Tournament name
           Expanded(
             child: Text(
               provider.structure.name,
-              style: const TextStyle(
-                color: Colors.white54,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
+              style: GoogleFonts.orbitron(
+                color: Colors.amber.shade300,
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 2,
               ),
               overflow: TextOverflow.ellipsis,
             ),
@@ -84,10 +86,11 @@ class _TimerScreenState extends State<TimerScreen> {
             stream: Stream.periodic(const Duration(seconds: 1)),
             builder: (context, _) => Text(
               DateFormat('HH:mm:ss').format(DateTime.now()),
-              style: const TextStyle(
-                color: Colors.white38,
-                fontSize: 16,
-                fontFamily: 'monospace',
+              style: GoogleFonts.rajdhani(
+                color: Colors.cyan.shade300,
+                fontSize: 26,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 2,
               ),
             ),
           ),
@@ -96,7 +99,8 @@ class _TimerScreenState extends State<TimerScreen> {
           IconButton(
             icon: Icon(
               _isFullscreen ? Icons.fullscreen_exit : Icons.fullscreen,
-              color: Colors.white38,
+              color: Colors.white54,
+              size: 28,
             ),
             onPressed: _toggleFullscreen,
             tooltip: 'Fullscreen',

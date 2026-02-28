@@ -4,7 +4,8 @@
       "Bash(flutter create --platforms web . --project-name jara_holdem)",
       "Bash(flutter pub add provider shared_preferences audioplayers)",
       "Bash(flutter pub add intl)",
-      "Bash(flutter build web)"
+      "Bash(flutter build web)",
+      "Bash(flutter pub add google_fonts)"
     ]
   }
 }
