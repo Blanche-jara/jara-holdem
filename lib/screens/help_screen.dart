@@ -211,46 +211,76 @@ class HelpScreen extends StatelessWidget {
     });
   }
 
-  // ===== HANDS =====
+  // ===== HANDS (2-column grid, no scroll) =====
   Widget _buildHandsPage(BuildContext context) {
     final sw = MediaQuery.of(context).size.width;
-    final termW = (sw * 0.28).clamp(110.0, 220.0);
-    final termFs = (sw * 0.045).clamp(22.0, 48.0);
-    final descFs = (sw * 0.022).clamp(14.0, 22.0);
+    final termFs = (sw * 0.022).clamp(14.0, 28.0);
+    final descFs = (sw * 0.014).clamp(11.0, 17.0);
+    final cardW = (sw * 0.03).clamp(24.0, 40.0);
+    final cardH = cardW * 1.42;
 
-    return ListView(
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
-      children: [
-        _subtitle('핸드 타입'),
-        _handRow('Pocket\nPair', '두 장의 홀카드가 같은 숫자.\n프리미엄 핸드에 해당.', [['A', '♠'], ['A', '♥']], termW, termFs, descFs),
-        _handRow('Suited', '두 장의 홀카드가 같은 무늬.\n플러시 가능성이 있어 가치 상승.', [['A', '♠'], ['K', '♠']], termW, termFs, descFs),
-        _handRow('Offsuit', '두 장의 홀카드가 다른 무늬.\n같은 숫자 조합이라도 수딧보다 가치가 낮다.', [['A', '♠'], ['K', '♥']], termW, termFs, descFs),
-        _handRow('Suited\nConnector', '같은 무늬 + 연속 숫자.\n스트레이트+플러시 가능성.', [['8', '♥'], ['9', '♥']], termW, termFs, descFs),
-        _handRow('Offsuit\nConnector', '다른 무늬 + 연속 숫자.\n스트레이트 가능성.', [['T', '♣'], ['J', '♦']], termW, termFs, descFs),
-        _handRow('Gap\nConnector', '한 칸 건너뛴 연속 숫자.\n예: 9-J (10을 건너뜀).', [['9', '♠'], ['J', '♠']], termW, termFs, descFs),
-      ],
-    );
-  }
+    final hands = [
+      ['Pocket Pair', '같은 숫자 2장', 'A', '♠', 'A', '♥'],
+      ['Suited', '같은 무늬', 'A', '♠', 'K', '♠'],
+      ['Offsuit', '다른 무늬', 'A', '♠', 'K', '♥'],
+      ['Suited\nConnector', '같은 무늬+연속 숫자', '8', '♥', '9', '♥'],
+      ['Offsuit\nConnector', '다른 무늬+연속 숫자', 'T', '♣', 'J', '♦'],
+      ['Gap\nConnector', '한 칸 건너뛴 연속', '9', '♠', 'J', '♠'],
+    ];
 
-  Widget _handRow(String term, String desc, List<List<String>> cards, double termW, double termFs, double descFs) {
+    const rows = 3; // 6 items / 2 columns
+    const spacing = 12.0;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 28),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: termW,
-            child: Text(term, style: GoogleFonts.orbitron(color: Colors.red.shade500, fontSize: termFs, fontWeight: FontWeight.w800, height: 1.2)),
-          ),
-          const SizedBox(width: 20),
+          _subtitle('핸드 타입'),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(desc, style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: descFs, height: 1.5)),
-                const SizedBox(height: 10),
-                _CardRow(cards, cardWidth: 42, cardHeight: 60),
-              ],
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final availH = constraints.maxHeight;
+                final cellH = (availH - spacing * (rows - 1)) / rows;
+                final cellW = (constraints.maxWidth - 16) / 2;
+                return GridView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: spacing,
+                    childAspectRatio: cellW / cellH,
+                  ),
+                  itemCount: hands.length,
+                  itemBuilder: (context, i) {
+                    final h = hands[i];
+                    return Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1A1A1A),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.white10),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(h[0], style: GoogleFonts.orbitron(color: Colors.red.shade500, fontSize: termFs, fontWeight: FontWeight.w800, height: 1.2)),
+                                const SizedBox(height: 4),
+                                Text(h[1], style: TextStyle(color: Colors.white60, fontSize: descFs)),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          _CardRow([[h[2], h[3]], [h[4], h[5]]], cardWidth: cardW, cardHeight: cardH),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
             ),
           ),
         ],
@@ -258,64 +288,281 @@ class HelpScreen extends StatelessWidget {
     );
   }
 
-  // ===== POSITIONS =====
+  // ===== POSITIONS (text left, diagram right) =====
   Widget _buildPositionsPage(BuildContext context) {
-    return _pageList(context, '포지션', [
-      _row('UTG', 'Under The Gun. BB 왼쪽, 프리플랍에서 가장 먼저 액션하는 자리. 가장 불리한 포지션.'),
-      _row('MP', 'Middle Position. UTG와 레이트 포지션 사이. 중간 정도의 핸드 레인지로 플레이.'),
-      _row('CO', 'Cutoff. 딜러 바로 오른쪽. 레이트 포지션으로 넓은 레인지 플레이 가능.'),
-      _row('BTN', 'Button(딜러). 포스트플랍에서 항상 마지막에 액션. 가장 유리한 포지션.'),
-      _row('SB', 'Small Blind 포지션. 프리플랍에서는 마지막에 가깝지만, 포스트플랍에서 가장 먼저 액션.'),
-      _row('BB', 'Big Blind 포지션. 프리플랍에서 마지막에 액션. 포스트플랍에서는 SB 다음으로 액션.'),
-    ]);
+    final sw = MediaQuery.of(context).size.width;
+    final termFs = (sw * 0.018).clamp(12.0, 22.0);
+    final descFs = (sw * 0.013).clamp(10.0, 16.0);
+
+    final positions = [
+      ['SB', 'Small Blind', Colors.blue],
+      ['BB', 'Big Blind', Colors.indigo],
+      ['UTG', '얼리. 가장 먼저 액션', Colors.red.shade700],
+      ['UTG+1', '얼리. UTG 다음', Colors.red.shade400],
+      ['LJ', '미들. 로우잭', Colors.orange],
+      ['HJ', '미들~레이트. 하이잭', Colors.amber.shade700],
+      ['CO', '레이트. 컷오프', Colors.green],
+      ['BTN', '레이트. 딜러버튼. 최고 포지션', Colors.teal],
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          // Left: position list
+          SizedBox(
+            width: sw * 0.32,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _subtitle('포지션 (8-MAX)'),
+                ...positions.map((p) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: termFs * 2.2,
+                            height: termFs * 2.2,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: (p[2] as Color),
+                            ),
+                            child: Center(
+                              child: Text(
+                                (p[0] as String).length <= 3 ? p[0] as String : (p[0] as String).substring(0, 2),
+                                style: TextStyle(color: Colors.white, fontSize: descFs, fontWeight: FontWeight.w900),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(p[0] as String, style: GoogleFonts.orbitron(color: Colors.red.shade500, fontSize: termFs, fontWeight: FontWeight.w700)),
+                                Text(p[1] as String, style: TextStyle(color: Colors.white54, fontSize: descFs)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    )),
+              ],
+            ),
+          ),
+          const SizedBox(width: 16),
+          // Right: table diagram
+          Expanded(child: _positionDiagram()),
+        ],
+      ),
+    );
   }
 
-  // ===== RANKINGS =====
-  Widget _buildRankingsPage(BuildContext context) {
-    final sw = MediaQuery.of(context).size.width;
-    final termW = (sw * 0.28).clamp(110.0, 220.0);
-    final termFs = (sw * 0.04).clamp(20.0, 40.0);
-    final descFs = (sw * 0.02).clamp(13.0, 20.0);
-    final cardW = (sw * 0.05).clamp(30.0, 48.0);
-    final cardH = cardW * 1.42;
+  Widget _positionDiagram() {
+    return Builder(builder: (context) {
+      final sw = MediaQuery.of(context).size.width;
+      final tableW = (sw * 0.85).clamp(300.0, 600.0);
+      final tableH = tableW * 0.7;
+      final seatSize = (sw * 0.055).clamp(28.0, 48.0);
+      final fontSize = (sw * 0.013).clamp(8.0, 13.0);
 
-    return ListView(
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+      // 8 seats positioned around an oval table
+      // Positions (clockwise from bottom-center): BTN, SB, BB, UTG, UTG+1, LJ, HJ, CO
+      final seats = <_SeatInfo>[
+        _SeatInfo('BTN', 'D', Colors.teal, 0.50, 0.92),
+        _SeatInfo('SB', 'SB', Colors.blue, 0.18, 0.80),
+        _SeatInfo('BB', 'BB', Colors.indigo, 0.05, 0.55),
+        _SeatInfo('UTG', '', Colors.red.shade700, 0.10, 0.25),
+        _SeatInfo('UTG+1', '', Colors.red.shade400, 0.28, 0.05),
+        _SeatInfo('LJ', '', Colors.orange, 0.55, 0.02),
+        _SeatInfo('HJ', '', Colors.amber.shade700, 0.78, 0.15),
+        _SeatInfo('CO', '', Colors.green, 0.88, 0.42),
+      ];
+
+      return Padding(
+        padding: const EdgeInsets.only(top: 12, bottom: 8),
+        child: Center(
+          child: SizedBox(
+            width: tableW,
+            height: tableH + seatSize,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // Table surface
+                Positioned(
+                  left: seatSize * 0.5,
+                  top: seatSize * 0.5,
+                  child: Container(
+                    width: tableW - seatSize,
+                    height: tableH - seatSize * 0.5,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(tableH * 0.45),
+                      color: const Color(0xFF1B5E20),
+                      border: Border.all(color: const Color(0xFF3E2723), width: 6),
+                      boxShadow: [BoxShadow(color: Colors.black45, blurRadius: 12)],
+                    ),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('8-MAX', style: GoogleFonts.orbitron(color: Colors.white24, fontSize: fontSize * 1.4, fontWeight: FontWeight.w700, letterSpacing: 3)),
+                          const SizedBox(height: 4),
+                          // Arrows showing action direction
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _posLabel('얼리', Colors.red.shade300, fontSize),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 6),
+                                child: Icon(Icons.arrow_forward, color: Colors.white24, size: fontSize * 1.2),
+                              ),
+                              _posLabel('미들', Colors.orange.shade300, fontSize),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 6),
+                                child: Icon(Icons.arrow_forward, color: Colors.white24, size: fontSize * 1.2),
+                              ),
+                              _posLabel('레이트', Colors.green.shade300, fontSize),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                // Seats
+                ...seats.map((s) => Positioned(
+                      left: s.x * (tableW - seatSize),
+                      top: s.y * (tableH - seatSize * 0.3),
+                      child: _buildSeat(s, seatSize, fontSize),
+                    )),
+              ],
+            ),
+          ),
+        ),
+      );
+    });
+  }
+
+  Widget _posLabel(String text, Color color, double fontSize) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: fontSize * 0.5, vertical: 2),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(4),
+        color: color.withValues(alpha: 0.15),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Text(text, style: TextStyle(color: color, fontSize: fontSize * 0.9, fontWeight: FontWeight.w600)),
+    );
+  }
+
+  Widget _buildSeat(_SeatInfo seat, double size, double fontSize) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        _subtitle('족보 (약 → 강)'),
-        _rankRow('High Card', '아무 조합도 없음. 가장 높은 카드로 승부.', [['A', '♠'], ['8', '♥'], ['5', '♦'], ['3', '♣'], ['2', '♠']], termW, termFs, descFs, cardW, cardH),
-        _rankRow('One Pair', '같은 숫자 2장.', [['K', '♠'], ['K', '♥'], ['9', '♦'], ['5', '♣'], ['2', '♠']], termW, termFs, descFs, cardW, cardH),
-        _rankRow('Two Pair', '같은 숫자 2장 × 2세트.', [['Q', '♠'], ['Q', '♥'], ['7', '♦'], ['7', '♣'], ['3', '♠']], termW, termFs, descFs, cardW, cardH),
-        _rankRow('Three of\na Kind', '같은 숫자 3장.\n"트립스" 또는 "셋".', [['J', '♠'], ['J', '♥'], ['J', '♦'], ['8', '♣'], ['2', '♠']], termW, termFs, descFs, cardW, cardH),
-        _rankRow('Straight', '연속된 숫자 5장.\n무늬 무관.', [['5', '♠'], ['6', '♥'], ['7', '♦'], ['8', '♣'], ['9', '♠']], termW, termFs, descFs, cardW, cardH),
-        _rankRow('Flush', '같은 무늬 5장.\n숫자 무관.', [['A', '♥'], ['T', '♥'], ['8', '♥'], ['5', '♥'], ['2', '♥']], termW, termFs, descFs, cardW, cardH),
-        _rankRow('Full House', '같은 숫자 3장 +\n같은 숫자 2장.', [['A', '♠'], ['A', '♥'], ['A', '♦'], ['K', '♣'], ['K', '♠']], termW, termFs, descFs, cardW, cardH),
-        _rankRow('Four of\na Kind', '같은 숫자 4장.\n"쿼드".', [['9', '♠'], ['9', '♥'], ['9', '♦'], ['9', '♣'], ['A', '♠']], termW, termFs, descFs, cardW, cardH),
-        _rankRow('Straight\nFlush', '같은 무늬 +\n연속 숫자 5장.', [['5', '♥'], ['6', '♥'], ['7', '♥'], ['8', '♥'], ['9', '♥']], termW, termFs, descFs, cardW, cardH),
-        _rankRow('Royal\nFlush', '같은 무늬의\nT-J-Q-K-A. 최강 족보.', [['T', '♠'], ['J', '♠'], ['Q', '♠'], ['K', '♠'], ['A', '♠']], termW, termFs, descFs, cardW, cardH),
+        Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: seat.color,
+            boxShadow: [BoxShadow(color: seat.color.withValues(alpha: 0.5), blurRadius: 6)],
+          ),
+          child: Center(
+            child: Text(
+              seat.chip.isNotEmpty ? seat.chip : seat.label.length <= 2 ? seat.label : seat.label.substring(0, 2),
+              style: TextStyle(color: Colors.white, fontSize: fontSize * 1.1, fontWeight: FontWeight.w900),
+            ),
+          ),
+        ),
+        const SizedBox(height: 3),
+        Text(seat.label, style: TextStyle(color: Colors.white70, fontSize: fontSize, fontWeight: FontWeight.w600)),
       ],
     );
   }
 
-  Widget _rankRow(String term, String desc, List<List<String>> cards, double termW, double termFs, double descFs, double cardW, double cardH) {
+  // ===== RANKINGS (2-column grid, no scroll) =====
+  Widget _buildRankingsPage(BuildContext context) {
+    final sw = MediaQuery.of(context).size.width;
+    final termFs = (sw * 0.018).clamp(12.0, 24.0);
+    final descFs = (sw * 0.012).clamp(10.0, 16.0);
+    final cardW = (sw * 0.025).clamp(20.0, 36.0);
+    final cardH = cardW * 1.42;
+
+    final ranks = [
+      ['High Card', '아무 조합도 없음', 'A', '♠', '8', '♥', '5', '♦', '3', '♣', '2', '♠'],
+      ['One Pair', '같은 숫자 2장', 'K', '♠', 'K', '♥', '9', '♦', '5', '♣', '2', '♠'],
+      ['Two Pair', '같은 숫자 2장 × 2세트', 'Q', '♠', 'Q', '♥', '7', '♦', '7', '♣', '3', '♠'],
+      ['Three of a Kind', '같은 숫자 3장 (트립스/셋)', 'J', '♠', 'J', '♥', 'J', '♦', '8', '♣', '2', '♠'],
+      ['Straight', '연속된 숫자 5장', '5', '♠', '6', '♥', '7', '♦', '8', '♣', '9', '♠'],
+      ['Flush', '같은 무늬 5장', 'A', '♥', 'T', '♥', '8', '♥', '5', '♥', '2', '♥'],
+      ['Full House', '3장 + 2장 조합', 'A', '♠', 'A', '♥', 'A', '♦', 'K', '♣', 'K', '♠'],
+      ['Four of a Kind', '같은 숫자 4장 (쿼드)', '9', '♠', '9', '♥', '9', '♦', '9', '♣', 'A', '♠'],
+      ['Straight Flush', '같은 무늬 + 연속 숫자', '5', '♥', '6', '♥', '7', '♥', '8', '♥', '9', '♥'],
+      ['Royal Flush', 'T-J-Q-K-A 같은 무늬', 'T', '♠', 'J', '♠', 'Q', '♠', 'K', '♠', 'A', '♠'],
+    ];
+
+    const rows = 5; // 10 items / 2 columns
+    const spacing = 10.0;
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 24),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: termW,
-            child: Text(term, style: GoogleFonts.orbitron(color: Colors.red.shade500, fontSize: termFs, fontWeight: FontWeight.w800, height: 1.2)),
-          ),
-          const SizedBox(width: 16),
+          _subtitle('족보 (약 → 강)'),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(desc, style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: descFs, height: 1.5)),
-                const SizedBox(height: 10),
-                _CardRow(cards, cardWidth: cardW, cardHeight: cardH),
-              ],
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final availH = constraints.maxHeight;
+                final cellH = (availH - spacing * (rows - 1)) / rows;
+                final cellW = (constraints.maxWidth - 16) / 2;
+                return GridView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: spacing,
+                    childAspectRatio: cellW / cellH,
+                  ),
+                  itemCount: ranks.length,
+                  itemBuilder: (context, i) {
+                    final r = ranks[i];
+                    final cards = <List<String>>[];
+                    for (int j = 2; j < r.length; j += 2) {
+                      cards.add([r[j], r[j + 1]]);
+                    }
+                    return Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1A1A1A),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.white10),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                '${i + 1}. ',
+                                style: TextStyle(color: Colors.white24, fontSize: termFs, fontWeight: FontWeight.w600),
+                              ),
+                              Expanded(
+                                child: Text(r[0], style: GoogleFonts.orbitron(color: Colors.red.shade500, fontSize: termFs, fontWeight: FontWeight.w800, height: 1.2)),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Text(r[1], style: TextStyle(color: Colors.white54, fontSize: descFs)),
+                          const SizedBox(height: 6),
+                          _CardRow(cards, cardWidth: cardW, cardHeight: cardH),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
             ),
           ),
         ],
@@ -363,4 +610,14 @@ class HelpScreen extends StatelessWidget {
       );
     });
   }
+}
+
+class _SeatInfo {
+  final String label;
+  final String chip;
+  final Color color;
+  final double x;
+  final double y;
+
+  const _SeatInfo(this.label, this.chip, this.color, this.x, this.y);
 }
