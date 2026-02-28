@@ -10,8 +10,8 @@ class BlindInfoDisplay extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<TournamentProvider>();
     final screenWidth = MediaQuery.of(context).size.width;
-    final infoFontSize = (screenWidth * 0.04).clamp(16.0, 48.0);
-    final nextFontSize = (screenWidth * 0.025).clamp(12.0, 28.0);
+    final infoFontSize = (screenWidth * 0.07).clamp(28.0, 80.0);
+    final nextFontSize = (screenWidth * 0.03).clamp(14.0, 32.0);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -69,10 +69,10 @@ class BlindInfoDisplay extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         _buildChip('SB', _formatNumber(level.smallBlind), fontSize, Colors.blue),
-        const SizedBox(width: 20),
+        const SizedBox(width: 40),
         _buildChip('BB', _formatNumber(level.bigBlind), fontSize, Colors.green),
         if (level.ante > 0) ...[
-          const SizedBox(width: 20),
+          const SizedBox(width: 40),
           _buildChip('ANTE', _formatNumber(level.ante), fontSize, Colors.orange),
         ],
       ],
@@ -86,12 +86,13 @@ class BlindInfoDisplay extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: fontSize * 0.4,
-            color: color.withValues(alpha: 0.7),
-            fontWeight: FontWeight.w500,
-            letterSpacing: 2,
+            fontSize: fontSize * 0.35,
+            color: color.withValues(alpha: 0.8),
+            fontWeight: FontWeight.w600,
+            letterSpacing: 3,
           ),
         ),
+        const SizedBox(height: 4),
         Text(
           value,
           style: TextStyle(
@@ -134,8 +135,11 @@ class BlindInfoDisplay extends StatelessWidget {
   }
 
   String _formatNumber(int number) {
-    if (number >= 1000) {
-      return '${(number / 1000).toStringAsFixed(number % 1000 == 0 ? 0 : 1)}K';
+    if (number >= 10000) {
+      return number.toString().replaceAllMapped(
+        RegExp(r'(\d)(?=(\d{3})+$)'),
+        (m) => '${m[1]},',
+      );
     }
     return number.toString();
   }
