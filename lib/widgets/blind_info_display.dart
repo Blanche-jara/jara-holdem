@@ -69,13 +69,27 @@ class BlindInfoDisplay extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         _buildChip('SB', _formatNumber(level.smallBlind), fontSize, Colors.blue),
-        const SizedBox(width: 40),
+        _buildSlash(fontSize),
         _buildChip('BB', _formatNumber(level.bigBlind), fontSize, Colors.green),
         if (level.ante > 0) ...[
-          const SizedBox(width: 40),
+          _buildSlash(fontSize),
           _buildChip('ANTE', _formatNumber(level.ante), fontSize, Colors.orange),
         ],
       ],
+    );
+  }
+
+  Widget _buildSlash(double fontSize) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Text(
+        '/',
+        style: TextStyle(
+          fontSize: fontSize * 0.8,
+          fontWeight: FontWeight.w300,
+          color: Colors.white24,
+        ),
+      ),
     );
   }
 
