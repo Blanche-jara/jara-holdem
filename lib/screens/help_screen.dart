@@ -58,7 +58,7 @@ class HelpScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 6,
+      length: 8,
       child: Scaffold(
         backgroundColor: const Color(0xFF0A0A0A),
         appBar: AppBar(
@@ -88,6 +88,8 @@ class HelpScreen extends StatelessWidget {
               Tab(text: 'STREETS'),
               Tab(text: 'HANDS'),
               Tab(text: 'POSITIONS'),
+              Tab(text: 'BETTING'),
+              Tab(text: 'GAME FLOW'),
               Tab(text: 'RANKINGS'),
             ],
           ),
@@ -99,6 +101,8 @@ class HelpScreen extends StatelessWidget {
             _buildStreetsPage(context),
             _buildHandsPage(context),
             _buildPositionsPage(context),
+            _buildBettingPage(context),
+            const _GameFlowPage(),
             _buildRankingsPage(context),
           ],
         ),
@@ -480,6 +484,126 @@ class HelpScreen extends StatelessWidget {
     );
   }
 
+  // ===== BETTING =====
+  Widget _buildBettingPage(BuildContext context) {
+    final sw = MediaQuery.of(context).size.width;
+    final termFs = (sw * 0.018).clamp(12.0, 22.0);
+    final descFs = (sw * 0.012).clamp(10.0, 15.0);
+    final tipFs = (sw * 0.011).clamp(9.0, 14.0);
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _subtitle('베팅 액션'),
+          // === 4 actions in 2x2 grid ===
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: _actionCard('OPEN', '아무도 베팅하지 않은 상태에서 처음으로 베팅.\nBB의 2~3배 크기로 오픈하는 것이 일반적.', Colors.green, termFs, descFs)),
+              const SizedBox(width: 12),
+              Expanded(child: _actionCard('RAISE', '앞 사람의 베팅보다 더 큰 금액을 베팅.\n최소 레이즈: 직전 베팅/레이즈 폭 이상.', Colors.orange, termFs, descFs)),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: _actionCard('CALL', '앞 사람의 베팅 금액과 동일하게 따라 베팅.\nBB만큼 콜하는 것을 "림프(Limp)"라 부른다.', Colors.blue, termFs, descFs)),
+              const SizedBox(width: 12),
+              Expanded(child: _actionCard('FOLD', '핸드를 포기하고 해당 판에서 빠지는 것.\n약한 핸드일수록 빠른 폴드가 칩을 지키는 길.', Colors.red, termFs, descFs)),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+          _subtitle('TIP: 포지션별 오픈 범위'),
+
+          // === Position tips (compact) ===
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final availH = constraints.maxHeight;
+                final cellH = (availH - 8 * 4) / 5;
+                return Column(
+                  children: [
+                    _posTip('UTG / UTG+1', '얼리', '타이트하게. AA~TT, AK, AQs 위주로 오픈', Colors.red, tipFs, cellH),
+                    const SizedBox(height: 8),
+                    _posTip('LJ / HJ', '미들', '수딧 커넥터, 중간 포켓 페어 추가 가능', Colors.orange, tipFs, cellH),
+                    const SizedBox(height: 8),
+                    _posTip('CO', '컷오프', '넓은 범위 오픈. 스틸(블라인드 훔치기) 시도', Colors.green, tipFs, cellH),
+                    const SizedBox(height: 8),
+                    _posTip('BTN', '딜러', '가장 넓게 오픈. Flop 이후 항상 마지막 액션 = 정보 우위', Colors.teal, tipFs, cellH),
+                    const SizedBox(height: 8),
+                    _posTip('SB / BB', '블라인드', 'SB: 포지션 불리, 신중하게. BB: 디스카운트로 넓게 디펜스', Colors.indigo, tipFs, cellH),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _posTip(String pos, String type, String desc, Color color, double fs, double height) {
+    return Container(
+      height: height,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: fs * 2.2,
+            height: fs * 2.2,
+            decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+            child: Center(
+              child: Text(pos.split(' ')[0], style: TextStyle(color: Colors.white, fontSize: fs * 0.75, fontWeight: FontWeight.w900)),
+            ),
+          ),
+          const SizedBox(width: 10),
+          SizedBox(
+            width: fs * 4,
+            child: Text(type, style: TextStyle(color: color, fontSize: fs, fontWeight: FontWeight.w700)),
+          ),
+          Expanded(
+            child: Text(desc, style: TextStyle(color: Colors.white60, fontSize: fs, height: 1.3)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _actionCard(String title, String desc, Color color, double titleFs, double descFs) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1A1A),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(title, style: GoogleFonts.orbitron(color: color, fontSize: titleFs, fontWeight: FontWeight.w800, letterSpacing: 2)),
+          ),
+          const SizedBox(height: 10),
+          Text(desc, style: TextStyle(color: Colors.white70, fontSize: descFs, height: 1.6)),
+        ],
+      ),
+    );
+  }
+
   // ===== RANKINGS (2-column grid, no scroll) =====
   Widget _buildRankingsPage(BuildContext context) {
     final sw = MediaQuery.of(context).size.width;
@@ -610,6 +734,492 @@ class HelpScreen extends StatelessWidget {
       );
     });
   }
+}
+
+// ===== GAME FLOW PAGE (StatefulWidget with PageView) =====
+class _GameFlowPage extends StatefulWidget {
+  const _GameFlowPage();
+
+  @override
+  State<_GameFlowPage> createState() => _GameFlowPageState();
+}
+
+class _GameFlowPageState extends State<_GameFlowPage> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+
+  static const _totalPages = 10;
+
+  // Per-page data: title, description, community cards count, highlighted seat index, show chips, folded seats
+  static final _pages = <_FlowPageData>[
+    _FlowPageData(
+      title: '카드 배분 (Dealing)',
+      desc: '딜러(BTN)가 SB부터 시계 방향으로 한 장씩 두 바퀴를 돌려\n각 플레이어에게 2장의 홀카드(비공개)를 배분합니다.',
+      communityCards: 0,
+      allHaveCards: true,
+      highlightSeat: 0, // BTN
+      chipSeats: {},
+      foldedSeats: {},
+      showPot: false,
+    ),
+    _FlowPageData(
+      title: '블라인드 포스팅 (Blinds)',
+      desc: 'SB가 스몰 블라인드, BB가 빅 블라인드를 강제 베팅합니다.\nAnte가 있는 레벨에서는 모든 플레이어가 Ante도 냅니다.',
+      communityCards: 0,
+      allHaveCards: true,
+      highlightSeat: -1,
+      chipSeats: {1, 2}, // SB, BB
+      foldedSeats: {},
+      showPot: true,
+    ),
+    _FlowPageData(
+      title: '프리플롭 베팅 (Preflop)',
+      desc: 'UTG(BB 왼쪽)부터 시계 방향으로 액션을 시작합니다.\n각 플레이어는 Fold, Call, 또는 Raise를 선택합니다.',
+      communityCards: 0,
+      allHaveCards: true,
+      highlightSeat: 3, // UTG
+      chipSeats: {1, 2},
+      foldedSeats: {},
+      showPot: true,
+    ),
+    _FlowPageData(
+      title: '프리플롭 완료',
+      desc: '모든 플레이어의 베팅 금액이 일치하면 프리플롭이 종료됩니다.\nBB는 모두 콜만 한 경우 체크(옵션) 또는 레이즈를 선택할 수 있습니다.\n폴드한 플레이어는 이후 참여하지 않습니다.',
+      communityCards: 0,
+      allHaveCards: true,
+      highlightSeat: -1,
+      chipSeats: {},
+      foldedSeats: {3, 5, 7}, // UTG, LJ, CO folded
+      showPot: true,
+    ),
+    _FlowPageData(
+      title: '플롭 공개 (Flop)',
+      desc: '딜러가 한 장을 번(Burn) 한 후, 커뮤니티 카드 3장을 동시에 공개합니다.\n모든 남은 플레이어가 공유하는 공용 카드입니다.',
+      communityCards: 3,
+      allHaveCards: true,
+      highlightSeat: 0,
+      chipSeats: {},
+      foldedSeats: {3, 5, 7},
+      showPot: true,
+    ),
+    _FlowPageData(
+      title: '플롭 베팅 (Flop Betting)',
+      desc: 'SB(또는 남은 플레이어 중 가장 얼리)부터 액션을 시작합니다.\n앞에 베팅이 없으면 Check 가능. BTN이 마지막에 액션합니다.\nPostflop부터는 BTN이 항상 마지막 → 레이트 포지션의 이점!',
+      communityCards: 3,
+      allHaveCards: true,
+      highlightSeat: 1, // SB
+      chipSeats: {},
+      foldedSeats: {3, 5, 7},
+      showPot: true,
+    ),
+    _FlowPageData(
+      title: '턴 공개 (Turn)',
+      desc: '딜러가 한 장을 번(Burn) 한 후, 4번째 커뮤니티 카드를 공개합니다.\n남은 플레이어들의 핸드 강도가 더 명확해집니다.',
+      communityCards: 4,
+      allHaveCards: true,
+      highlightSeat: 0,
+      chipSeats: {},
+      foldedSeats: {3, 4, 5, 7}, // more folds
+      showPot: true,
+    ),
+    _FlowPageData(
+      title: '턴 베팅 (Turn Betting)',
+      desc: '플롭과 동일한 순서로 베팅 라운드가 진행됩니다.\n턴부터는 베팅 사이즈가 커지는 경향이 있습니다.\n팟이 커질수록 결정의 무게도 커집니다.',
+      communityCards: 4,
+      allHaveCards: true,
+      highlightSeat: 1,
+      chipSeats: {},
+      foldedSeats: {3, 4, 5, 7},
+      showPot: true,
+    ),
+    _FlowPageData(
+      title: '리버 공개 & 베팅 (River)',
+      desc: '딜러가 마지막 5번째 커뮤니티 카드를 공개합니다.\n최종 베팅 라운드가 진행됩니다. 이 라운드가 끝나면 쇼다운으로 진행합니다.\n더 이상 카드가 공개되지 않으므로 블러핑의 마지막 기회입니다.',
+      communityCards: 5,
+      allHaveCards: true,
+      highlightSeat: 1,
+      chipSeats: {},
+      foldedSeats: {3, 4, 5, 7},
+      showPot: true,
+    ),
+    _FlowPageData(
+      title: '쇼다운 (Showdown)',
+      desc: '최종 베팅 후 남은 플레이어들이 카드를 공개합니다.\n홀카드 2장 + 커뮤니티 5장 중 가장 좋은 5장 조합으로 승부합니다.\n가장 높은 족보를 가진 플레이어가 팟을 획득합니다.',
+      communityCards: 5,
+      allHaveCards: true,
+      highlightSeat: -1,
+      chipSeats: {},
+      foldedSeats: {3, 4, 5, 7},
+      showPot: true,
+      isShowdown: true,
+    ),
+  ];
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final sw = MediaQuery.of(context).size.width;
+    final titleFs = (sw * 0.022).clamp(14.0, 28.0);
+    final descFs = (sw * 0.014).clamp(11.0, 18.0);
+    final navFs = (sw * 0.014).clamp(11.0, 16.0);
+
+    return Column(
+      children: [
+        // Top: step indicator + navigation
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Row(
+            children: [
+              // Step indicator
+              Text(
+                'STEP ${_currentPage + 1} / $_totalPages',
+                style: GoogleFonts.orbitron(
+                  color: Colors.white38,
+                  fontSize: navFs,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 2,
+                ),
+              ),
+              const Spacer(),
+              // Dot indicators
+              ...List.generate(_totalPages, (i) => Container(
+                width: 8,
+                height: 8,
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: i == _currentPage ? Colors.amber : Colors.white12,
+                ),
+              )),
+              const Spacer(),
+              // Nav buttons
+              IconButton(
+                icon: Icon(Icons.chevron_left, color: _currentPage > 0 ? Colors.white70 : Colors.white12, size: 28),
+                onPressed: _currentPage > 0 ? _prevPage : null,
+              ),
+              IconButton(
+                icon: Icon(Icons.chevron_right, color: _currentPage < _totalPages - 1 ? Colors.white70 : Colors.white12, size: 28),
+                onPressed: _currentPage < _totalPages - 1 ? _nextPage : null,
+              ),
+            ],
+          ),
+        ),
+
+        // Main content: PageView
+        Expanded(
+          child: PageView.builder(
+            controller: _pageController,
+            onPageChanged: (i) => setState(() => _currentPage = i),
+            itemCount: _totalPages,
+            itemBuilder: (context, i) {
+              final page = _pages[i];
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  children: [
+                    // Table diagram (center, expanded)
+                    Expanded(
+                      child: Center(
+                        child: _buildFlowTable(context, page),
+                      ),
+                    ),
+                    // Description (bottom)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1A1A1A),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white10),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            page.title,
+                            style: GoogleFonts.orbitron(
+                              color: Colors.amber.shade300,
+                              fontSize: titleFs,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            page.desc,
+                            style: TextStyle(color: Colors.white70, fontSize: descFs, height: 1.6),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _prevPage() {
+    _pageController.previousPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+  }
+
+  void _nextPage() {
+    _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+  }
+
+  // Community card examples
+  static const _communityCardData = [
+    ['A', '♥'], ['K', '♦'], ['7', '♠'], ['J', '♣'], ['2', '♥'],
+  ];
+
+  // Player hole cards (for showdown)
+  static const _playerHoleCards = [
+    [['Q', '♠'], ['Q', '♥']], // BTN
+    [['9', '♦'], ['T', '♦']], // SB
+    [['A', '♣'], ['K', '♣']], // BB - winner
+    [['5', '♠'], ['6', '♠']], // UTG (folded)
+    [['J', '♥'], ['3', '♦']], // UTG+1 (folded)
+    [['8', '♣'], ['2', '♣']], // LJ (folded)
+    [['T', '♠'], ['9', '♠']], // HJ
+    [['4', '♥'], ['4', '♦']], // CO (folded)
+  ];
+
+  Widget _buildFlowTable(BuildContext context, _FlowPageData page) {
+    final sw = MediaQuery.of(context).size.width;
+    final tableW = (sw * 0.65).clamp(280.0, 550.0);
+    final tableH = tableW * 0.65;
+    final seatSize = (sw * 0.04).clamp(24.0, 40.0);
+    final fontSize = (sw * 0.011).clamp(7.0, 12.0);
+    final cardW = (sw * 0.025).clamp(18.0, 32.0);
+    final cardH = cardW * 1.42;
+
+    final seats = <_SeatInfo>[
+      _SeatInfo('BTN', 'D', Colors.teal, 0.50, 0.92),
+      _SeatInfo('SB', 'SB', Colors.blue, 0.15, 0.80),
+      _SeatInfo('BB', 'BB', Colors.indigo, 0.03, 0.50),
+      _SeatInfo('UTG', 'U', Colors.red.shade700, 0.08, 0.20),
+      _SeatInfo('UTG+1', 'U1', Colors.red.shade400, 0.28, 0.03),
+      _SeatInfo('LJ', 'LJ', Colors.orange, 0.55, 0.00),
+      _SeatInfo('HJ', 'HJ', Colors.amber.shade700, 0.78, 0.12),
+      _SeatInfo('CO', 'CO', Colors.green, 0.90, 0.40),
+    ];
+
+    return SizedBox(
+      width: tableW,
+      height: tableH + seatSize * 2,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // Table surface
+          Positioned(
+            left: seatSize * 0.5,
+            top: seatSize * 0.5,
+            child: Container(
+              width: tableW - seatSize,
+              height: tableH - seatSize * 0.3,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(tableH * 0.45),
+                color: const Color(0xFF1B5E20),
+                border: Border.all(color: const Color(0xFF3E2723), width: 5),
+                boxShadow: const [BoxShadow(color: Colors.black45, blurRadius: 12)],
+              ),
+            ),
+          ),
+
+          // Community cards (center of table)
+          if (page.communityCards > 0)
+            Positioned(
+              left: (tableW - (cardW * page.communityCards + 4 * (page.communityCards - 1))) / 2,
+              top: tableH * 0.35,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: List.generate(page.communityCards, (i) {
+                  final c = _communityCardData[i];
+                  return Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 2),
+                    child: _PokerCard(c[0], c[1], width: cardW, height: cardH),
+                  );
+                }),
+              ),
+            ),
+
+          // Pot indicator
+          if (page.showPot)
+            Positioned(
+              left: tableW * 0.35,
+              top: tableH * 0.55,
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: fontSize * 0.8, vertical: 3),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  color: Colors.amber.withValues(alpha: 0.2),
+                  border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.circle, color: Colors.amber, size: fontSize),
+                    SizedBox(width: 3),
+                    Text('POT', style: TextStyle(color: Colors.amber, fontSize: fontSize, fontWeight: FontWeight.w700)),
+                  ],
+                ),
+              ),
+            ),
+
+          // Seats
+          ...List.generate(seats.length, (i) {
+            final s = seats[i];
+            final isFolded = page.foldedSeats.contains(i);
+            final isHighlighted = page.highlightSeat == i;
+            final showCards = page.allHaveCards && !isFolded;
+            final showFaceUp = page.isShowdown && !isFolded;
+
+            return Positioned(
+              left: s.x * (tableW - seatSize),
+              top: s.y * (tableH - seatSize * 0.3),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Seat circle
+                  Container(
+                    width: seatSize,
+                    height: seatSize,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isFolded ? Colors.grey.shade800 : s.color,
+                      boxShadow: isHighlighted
+                          ? [BoxShadow(color: Colors.yellow.withValues(alpha: 0.8), blurRadius: 12, spreadRadius: 2)]
+                          : [BoxShadow(color: s.color.withValues(alpha: isFolded ? 0.1 : 0.4), blurRadius: 4)],
+                      border: isHighlighted ? Border.all(color: Colors.yellow, width: 2) : null,
+                    ),
+                    child: Center(
+                      child: Text(
+                        s.chip,
+                        style: TextStyle(
+                          color: isFolded ? Colors.white24 : Colors.white,
+                          fontSize: fontSize * 1.1,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  // Label
+                  Text(
+                    s.label,
+                    style: TextStyle(
+                      color: isFolded ? Colors.white24 : Colors.white70,
+                      fontSize: fontSize,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  // Cards below seat
+                  if (showCards && !showFaceUp)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildFaceDownCard(cardW * 0.7, cardH * 0.7),
+                        _buildFaceDownCard(cardW * 0.7, cardH * 0.7),
+                      ],
+                    ),
+                  if (showFaceUp)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _PokerCard(_playerHoleCards[i][0][0], _playerHoleCards[i][0][1], width: cardW * 0.7, height: cardH * 0.7),
+                        _PokerCard(_playerHoleCards[i][1][0], _playerHoleCards[i][1][1], width: cardW * 0.7, height: cardH * 0.7),
+                      ],
+                    ),
+                  if (isFolded)
+                    Text('FOLD', style: TextStyle(color: Colors.red.shade300.withValues(alpha: 0.5), fontSize: fontSize * 0.8, fontWeight: FontWeight.w700)),
+                  // Chip indicator for blinds
+                  if (page.chipSeats.contains(i))
+                    Container(
+                      margin: const EdgeInsets.only(top: 2),
+                      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(6),
+                        color: Colors.amber.withValues(alpha: 0.3),
+                      ),
+                      child: Text(
+                        i == 1 ? 'SB' : 'BB',
+                        style: TextStyle(color: Colors.amber, fontSize: fontSize * 0.8, fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                ],
+              ),
+            );
+          }),
+
+          // Action arrow for highlighted seat
+          if (page.highlightSeat >= 0 && page.highlightSeat < seats.length)
+            Positioned(
+              left: tableW * 0.38,
+              top: tableH * 0.18,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.play_arrow, color: Colors.yellow.withValues(alpha: 0.7), size: fontSize * 1.5),
+                  Text(
+                    'ACTION',
+                    style: TextStyle(color: Colors.yellow.withValues(alpha: 0.7), fontSize: fontSize, fontWeight: FontWeight.w700, letterSpacing: 2),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFaceDownCard(double w, double h) {
+    return Container(
+      width: w,
+      height: h,
+      margin: const EdgeInsets.symmetric(horizontal: 1),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1565C0),
+        borderRadius: BorderRadius.circular(3),
+        border: Border.all(color: Colors.white24, width: 0.5),
+        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 2)],
+      ),
+      child: Center(
+        child: Text('?', style: TextStyle(color: Colors.white38, fontSize: w * 0.4, fontWeight: FontWeight.w900)),
+      ),
+    );
+  }
+}
+
+class _FlowPageData {
+  final String title;
+  final String desc;
+  final int communityCards;
+  final bool allHaveCards;
+  final int highlightSeat; // -1 = none
+  final Set<int> chipSeats;
+  final Set<int> foldedSeats;
+  final bool showPot;
+  final bool isShowdown;
+
+  const _FlowPageData({
+    required this.title,
+    required this.desc,
+    required this.communityCards,
+    required this.allHaveCards,
+    required this.highlightSeat,
+    required this.chipSeats,
+    required this.foldedSeats,
+    required this.showPot,
+    this.isShowdown = false,
+  });
 }
 
 class _SeatInfo {
