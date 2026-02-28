@@ -292,9 +292,11 @@ class HelpScreen extends StatelessWidget {
     );
   }
 
-  // ===== POSITIONS (text left, diagram right) =====
+  // ===== POSITIONS (landscape: side-by-side, portrait: vertical) =====
   Widget _buildPositionsPage(BuildContext context) {
     final sw = MediaQuery.of(context).size.width;
+    final sh = MediaQuery.of(context).size.height;
+    final isPortrait = sh > sw;
     final termFs = (sw * 0.018).clamp(12.0, 22.0);
     final descFs = (sw * 0.013).clamp(10.0, 16.0);
 
@@ -309,53 +311,72 @@ class HelpScreen extends StatelessWidget {
       ['BTN', '레이트. 딜러버튼. 최고 포지션', Colors.teal],
     ];
 
+    Widget positionList({bool compact = false}) {
+      final spacing = compact ? 4.0 : 8.0;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
+        children: [
+          _subtitle('포지션 (8-MAX)'),
+          ...positions.map((p) => Padding(
+                padding: EdgeInsets.only(bottom: spacing),
+                child: Row(
+                  children: [
+                    Container(
+                      width: termFs * 2.2,
+                      height: termFs * 2.2,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: (p[2] as Color),
+                      ),
+                      child: Center(
+                        child: Text(
+                          (p[0] as String).length <= 3 ? p[0] as String : (p[0] as String).substring(0, 2),
+                          style: TextStyle(color: Colors.white, fontSize: descFs, fontWeight: FontWeight.w900),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(p[0] as String, style: GoogleFonts.orbitron(color: Colors.red.shade500, fontSize: termFs, fontWeight: FontWeight.w700)),
+                          Text(p[1] as String, style: TextStyle(color: Colors.white54, fontSize: descFs)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              )),
+        ],
+      );
+    }
+
+    if (isPortrait) {
+      // Portrait: vertical layout — position list on top, diagram below
+      return Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          children: [
+            positionList(compact: true),
+            const SizedBox(height: 8),
+            Expanded(child: _positionDiagram()),
+          ],
+        ),
+      );
+    }
+
+    // Landscape: side-by-side
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
-          // Left: position list
           SizedBox(
             width: sw * 0.32,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _subtitle('포지션 (8-MAX)'),
-                ...positions.map((p) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: termFs * 2.2,
-                            height: termFs * 2.2,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: (p[2] as Color),
-                            ),
-                            child: Center(
-                              child: Text(
-                                (p[0] as String).length <= 3 ? p[0] as String : (p[0] as String).substring(0, 2),
-                                style: TextStyle(color: Colors.white, fontSize: descFs, fontWeight: FontWeight.w900),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(p[0] as String, style: GoogleFonts.orbitron(color: Colors.red.shade500, fontSize: termFs, fontWeight: FontWeight.w700)),
-                                Text(p[1] as String, style: TextStyle(color: Colors.white54, fontSize: descFs)),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    )),
-              ],
-            ),
+            child: positionList(),
           ),
           const SizedBox(width: 16),
-          // Right: table diagram
           Expanded(child: _positionDiagram()),
         ],
       ),
@@ -363,12 +384,12 @@ class HelpScreen extends StatelessWidget {
   }
 
   Widget _positionDiagram() {
-    return Builder(builder: (context) {
-      final sw = MediaQuery.of(context).size.width;
-      final tableW = (sw * 0.85).clamp(300.0, 600.0);
+    return LayoutBuilder(builder: (context, constraints) {
+      final availW = constraints.maxWidth;
+      final tableW = availW.clamp(180.0, 600.0);
       final tableH = tableW * 0.7;
-      final seatSize = (sw * 0.055).clamp(28.0, 48.0);
-      final fontSize = (sw * 0.013).clamp(8.0, 13.0);
+      final seatSize = (tableW * 0.08).clamp(24.0, 48.0);
+      final fontSize = (tableW * 0.022).clamp(7.0, 13.0);
 
       // 8 seats positioned around an oval table
       // Positions (clockwise from bottom-center): BTN, SB, BB, UTG, UTG+1, LJ, HJ, CO
