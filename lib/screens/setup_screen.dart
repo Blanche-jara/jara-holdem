@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../models/blind_level.dart';
 import '../models/tournament_structure.dart';
 import '../presets/default_presets.dart';
 import '../providers/tournament_provider.dart';
+import '../services/structure_parser.dart';
 import '../widgets/level_list_editor.dart';
 
 class SetupScreen extends StatefulWidget {
@@ -67,8 +69,10 @@ class _SetupScreenState extends State<SetupScreen> {
           ),
           // Cash game: SB/BB editor only
           if (_isCashGame) _buildCashGameEditor(),
+          // Empty slate with import option
+          if (!_isCashGame && _levels.isEmpty) _buildImportView(),
           // Tournament: full level editor
-          if (!_isCashGame)
+          if (!_isCashGame && _levels.isNotEmpty)
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.only(bottom: 80),
@@ -233,6 +237,126 @@ class _SetupScreenState extends State<SetupScreen> {
     );
   }
 
+  Widget _buildImportView() {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          children: [
+            const SizedBox(height: 8),
+            // Format guide
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.04),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.info_outline, size: 16, color: Colors.white38),
+                      const SizedBox(width: 6),
+                      const Text(
+                        'Format Guide',
+                        style: TextStyle(color: Colors.white54, fontSize: 13, fontWeight: FontWeight.w600),
+                      ),
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: () {
+                          Clipboard.setData(ClipboardData(text: StructureParser.aiPrompt));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('AI prompt copied to clipboard'),
+                              duration: Duration(seconds: 2),
+                              backgroundColor: Color(0xFF2A2A2A),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.smart_toy_outlined, size: 13, color: Colors.blue),
+                              SizedBox(width: 4),
+                              Text(
+                                'Copy AI Prompt',
+                                style: TextStyle(color: Colors.blue, fontSize: 11),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    StructureParser.formatDescription,
+                    style: const TextStyle(color: Colors.white30, fontSize: 12, height: 1.6),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            // Import text area
+            Expanded(
+              child: _StructureImportField(
+                onImport: (levels) {
+                  setState(() {
+                    _levels = levels;
+                  });
+                },
+              ),
+            ),
+            const SizedBox(height: 12),
+            // Or add manually
+            Row(
+              children: [
+                const Expanded(child: Divider(color: Colors.white12)),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Text('OR', style: TextStyle(color: Colors.white.withValues(alpha: 0.2), fontSize: 12)),
+                ),
+                const Expanded(child: Divider(color: Colors.white12)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _levels = [
+                        const BlindLevel(level: 1, smallBlind: 25, bigBlind: 50, durationMinutes: 15),
+                      ];
+                    });
+                  },
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Add Level Manually'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green.shade800,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _save() {
     final structure = TournamentStructure(
       name: _nameController.text.trim().isEmpty ? 'Tournament' : _nameController.text.trim(),
@@ -271,6 +395,131 @@ class _PresetChip extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _StructureImportField extends StatefulWidget {
+  final ValueChanged<List<dynamic>> onImport;
+
+  const _StructureImportField({required this.onImport});
+
+  @override
+  State<_StructureImportField> createState() => _StructureImportFieldState();
+}
+
+class _StructureImportFieldState extends State<_StructureImportField> {
+  final _controller = TextEditingController();
+  List<String>? _errors;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _tryImport() {
+    final text = _controller.text.trim();
+    if (text.isEmpty) return;
+
+    final result = StructureParser.parse(text);
+    if (result.hasErrors) {
+      setState(() {
+        _errors = result.errors;
+      });
+    } else {
+      setState(() {
+        _errors = null;
+      });
+      widget.onImport(result.levels);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: TextField(
+            controller: _controller,
+            maxLines: null,
+            expands: true,
+            textAlignVertical: TextAlignVertical.top,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontFamily: 'monospace',
+              height: 1.6,
+            ),
+            decoration: InputDecoration(
+              hintText: StructureParser.formatHelp,
+              hintStyle: const TextStyle(color: Colors.white12, fontSize: 13),
+              filled: true,
+              fillColor: const Color(0xFF1A1A1A),
+              contentPadding: const EdgeInsets.all(14),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                  color: _errors != null ? Colors.red.withValues(alpha: 0.5) : Colors.white12,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                  color: _errors != null ? Colors.red : Colors.green,
+                ),
+              ),
+            ),
+            onChanged: (_) {
+              if (_errors != null) {
+                setState(() { _errors = null; });
+              }
+            },
+          ),
+        ),
+        // Error display
+        if (_errors != null) ...[
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.red.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+            ),
+            constraints: const BoxConstraints(maxHeight: 80),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: _errors!
+                    .map((e) => Padding(
+                          padding: const EdgeInsets.only(bottom: 2),
+                          child: Text(
+                            e,
+                            style: const TextStyle(color: Colors.redAccent, fontSize: 12),
+                          ),
+                        ))
+                    .toList(),
+              ),
+            ),
+          ),
+        ],
+        const SizedBox(height: 10),
+        SizedBox(
+          height: 44,
+          child: ElevatedButton.icon(
+            onPressed: _tryImport,
+            icon: const Icon(Icons.download, size: 18),
+            label: const Text('Import Structure'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green.shade700,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

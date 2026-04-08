@@ -603,7 +603,7 @@ class _DurationDialState extends State<_DurationDial> {
   late final FixedExtentScrollController _scrollController;
 
   static const _minVal = 1;
-  static const _maxVal = 60;
+  static const _maxVal = 50;
 
   @override
   void initState() {
