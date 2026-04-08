@@ -7,7 +7,8 @@
       "Bash(flutter build web)",
       "Bash(flutter pub add google_fonts)",
       "Bash(dart analyze lib/screens/help_screen.dart)",
-      "Bash(flutter pub get)"
+      "Bash(flutter pub get)",
+      "Bash(flutter analyze:*)"
     ]
   }
 }
