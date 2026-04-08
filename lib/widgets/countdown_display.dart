@@ -9,7 +9,8 @@ class CountdownDisplay extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<TournamentProvider>();
     final screenWidth = MediaQuery.of(context).size.width;
-    final timerFontSize = (screenWidth * 0.15).clamp(48.0, 180.0);
+    final screenHeight = MediaQuery.of(context).size.height;
+    final timerFontSize = (screenWidth * 0.15).clamp(48.0, 180.0).clamp(48.0, screenHeight * 0.18);
 
     if (provider.structure.levels.isEmpty) {
       return Text(

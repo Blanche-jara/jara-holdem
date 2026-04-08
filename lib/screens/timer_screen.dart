@@ -38,24 +38,31 @@ class _TimerScreenState extends State<TimerScreen> {
             _buildTopBar(provider),
             // Main content
             Expanded(
-              child: Center(
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const CountdownDisplay(),
-                        const SizedBox(height: 32),
-                        const BlindInfoDisplay(),
-                        const SizedBox(height: 40),
-                        ControlButtons(
-                          onSettingsTap: () => _openSettings(context),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final h = constraints.maxHeight;
+                  final gap1 = (h * 0.04).clamp(8.0, 32.0);
+                  final gap2 = (h * 0.05).clamp(10.0, 40.0);
+                  return Center(
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const CountdownDisplay(),
+                            SizedBox(height: gap1),
+                            const BlindInfoDisplay(),
+                            SizedBox(height: gap2),
+                            ControlButtons(
+                              onSettingsTap: () => _openSettings(context),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
             ),
           ],

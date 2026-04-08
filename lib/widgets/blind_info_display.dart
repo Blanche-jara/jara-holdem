@@ -10,8 +10,9 @@ class BlindInfoDisplay extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<TournamentProvider>();
     final screenWidth = MediaQuery.of(context).size.width;
-    final infoFontSize = (screenWidth * 0.07).clamp(28.0, 80.0);
-    final nextFontSize = (screenWidth * 0.03).clamp(14.0, 32.0);
+    final screenHeight = MediaQuery.of(context).size.height;
+    final infoFontSize = (screenWidth * 0.07).clamp(28.0, 80.0).clamp(28.0, screenHeight * 0.07);
+    final nextFontSize = (screenWidth * 0.03).clamp(14.0, 32.0).clamp(14.0, screenHeight * 0.03);
 
     return Column(
       mainAxisSize: MainAxisSize.min,

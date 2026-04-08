@@ -215,7 +215,7 @@ class HelpScreen extends StatelessWidget {
     });
   }
 
-  // ===== HANDS (2-column grid, no scroll) =====
+  // ===== HANDS =====
   Widget _buildHandsPage(BuildContext context) {
     final sw = MediaQuery.of(context).size.width;
     final termFs = (sw * 0.022).clamp(14.0, 28.0);
@@ -232,8 +232,6 @@ class HelpScreen extends StatelessWidget {
       ['Gap\nConnector', '한 칸 건너뛴 연속', '9', '♠', 'J', '♠'],
     ];
 
-    const rows = 3; // 6 items / 2 columns
-    const spacing = 12.0;
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -241,48 +239,40 @@ class HelpScreen extends StatelessWidget {
         children: [
           _subtitle('핸드 타입'),
           Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final availH = constraints.maxHeight;
-                final cellH = (availH - spacing * (rows - 1)) / rows;
-                final cellW = (constraints.maxWidth - 16) / 2;
-                return GridView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: spacing,
-                    childAspectRatio: cellW / cellH,
+            child: GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 12,
+                childAspectRatio: 2.2,
+              ),
+              itemCount: hands.length,
+              itemBuilder: (context, i) {
+                final h = hands[i];
+                return Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1A1A1A),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.white10),
                   ),
-                  itemCount: hands.length,
-                  itemBuilder: (context, i) {
-                    final h = hands[i];
-                    return Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1A1A1A),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.white10),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(h[0], style: GoogleFonts.orbitron(color: Colors.red.shade500, fontSize: termFs, fontWeight: FontWeight.w800, height: 1.2)),
+                            const SizedBox(height: 4),
+                            Flexible(child: Text(h[1], style: TextStyle(color: Colors.white60, fontSize: descFs), overflow: TextOverflow.ellipsis, maxLines: 2)),
+                          ],
+                        ),
                       ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(h[0], style: GoogleFonts.orbitron(color: Colors.red.shade500, fontSize: termFs, fontWeight: FontWeight.w800, height: 1.2)),
-                                const SizedBox(height: 4),
-                                Text(h[1], style: TextStyle(color: Colors.white60, fontSize: descFs)),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          _CardRow([[h[2], h[3]], [h[4], h[5]]], cardWidth: cardW, cardHeight: cardH),
-                        ],
-                      ),
-                    );
-                  },
+                      const SizedBox(width: 8),
+                      _CardRow([[h[2], h[3]], [h[4], h[5]]], cardWidth: cardW, cardHeight: cardH),
+                    ],
+                  ),
                 );
               },
             ),
@@ -625,7 +615,7 @@ class HelpScreen extends StatelessWidget {
     );
   }
 
-  // ===== RANKINGS (2-column grid, no scroll) =====
+  // ===== RANKINGS =====
   Widget _buildRankingsPage(BuildContext context) {
     final sw = MediaQuery.of(context).size.width;
     final termFs = (sw * 0.018).clamp(12.0, 24.0);
@@ -646,9 +636,6 @@ class HelpScreen extends StatelessWidget {
       ['Royal Flush', 'T-J-Q-K-A 같은 무늬', 'T', '♠', 'J', '♠', 'Q', '♠', 'K', '♠', 'A', '♠'],
     ];
 
-    const rows = 5; // 10 items / 2 columns
-    const spacing = 10.0;
-
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -656,56 +643,48 @@ class HelpScreen extends StatelessWidget {
         children: [
           _subtitle('족보 (약 → 강)'),
           Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final availH = constraints.maxHeight;
-                final cellH = (availH - spacing * (rows - 1)) / rows;
-                final cellW = (constraints.maxWidth - 16) / 2;
-                return GridView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: spacing,
-                    childAspectRatio: cellW / cellH,
+            child: GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 10,
+                childAspectRatio: 1.8,
+              ),
+              itemCount: ranks.length,
+              itemBuilder: (context, i) {
+                final r = ranks[i];
+                final cards = <List<String>>[];
+                for (int j = 2; j < r.length; j += 2) {
+                  cards.add([r[j], r[j + 1]]);
+                }
+                return Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1A1A1A),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.white10),
                   ),
-                  itemCount: ranks.length,
-                  itemBuilder: (context, i) {
-                    final r = ranks[i];
-                    final cards = <List<String>>[];
-                    for (int j = 2; j < r.length; j += 2) {
-                      cards.add([r[j], r[j + 1]]);
-                    }
-                    return Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1A1A1A),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.white10),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Row(
                         children: [
-                          Row(
-                            children: [
-                              Text(
-                                '${i + 1}. ',
-                                style: TextStyle(color: Colors.white24, fontSize: termFs, fontWeight: FontWeight.w600),
-                              ),
-                              Expanded(
-                                child: Text(r[0], style: GoogleFonts.orbitron(color: Colors.red.shade500, fontSize: termFs, fontWeight: FontWeight.w800, height: 1.2)),
-                              ),
-                            ],
+                          Text(
+                            '${i + 1}. ',
+                            style: TextStyle(color: Colors.white24, fontSize: termFs, fontWeight: FontWeight.w600),
                           ),
-                          const SizedBox(height: 2),
-                          Text(r[1], style: TextStyle(color: Colors.white54, fontSize: descFs)),
-                          const SizedBox(height: 6),
-                          _CardRow(cards, cardWidth: cardW, cardHeight: cardH),
+                          Flexible(
+                            child: Text(r[0], style: GoogleFonts.orbitron(color: Colors.red.shade500, fontSize: termFs, fontWeight: FontWeight.w800, height: 1.2), overflow: TextOverflow.ellipsis),
+                          ),
                         ],
                       ),
-                    );
-                  },
+                      const SizedBox(height: 2),
+                      Text(r[1], style: TextStyle(color: Colors.white54, fontSize: descFs), overflow: TextOverflow.ellipsis),
+                      const SizedBox(height: 6),
+                      Flexible(child: _CardRow(cards, cardWidth: cardW, cardHeight: cardH)),
+                    ],
+                  ),
                 );
               },
             ),
