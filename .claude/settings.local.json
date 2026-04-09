@@ -8,7 +8,15 @@
       "Bash(flutter pub add google_fonts)",
       "Bash(dart analyze lib/screens/help_screen.dart)",
       "Bash(flutter pub get)",
-      "Bash(flutter analyze:*)"
+      "Bash(flutter analyze:*)",
+      "Bash(where flutter:*)",
+      "Read(//c/src/flutter/**)",
+      "Read(//c/flutter/**)",
+      "Read(//c/dev/flutter/**)",
+      "Read(//c/Users/Blanche/flutter/**)",
+      "Read(//c/Users/Blanche/AppData/Local/flutter/**)",
+      "Read(//c/Users/Blanche/Desktop/flutter/**)",
+      "Bash(cmd.exe /c \"where flutter & where dart\")"
     ]
   }
 }
