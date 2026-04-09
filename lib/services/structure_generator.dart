@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import '../models/blind_level.dart';
+import '../models/break_level.dart';
 
 /// Auto-generates a tournament blind structure based on tournament parameters.
 ///
@@ -15,6 +16,15 @@ class StructureGeneratorOptions {
   final int anteStart;
   final String anteType; // 'bb' | 'half' | 'classic'
 
+  /// Whether to insert breaks between blind levels.
+  final bool insertBreaks;
+
+  /// Insert a break after every N blind levels (1+).
+  final int breakInterval;
+
+  /// Duration of each inserted break, in minutes.
+  final int breakDuration;
+
   const StructureGeneratorOptions({
     this.hasAnte = false,
     this.startChips = 20000,
@@ -24,6 +34,9 @@ class StructureGeneratorOptions {
     this.levelDuration = 0,
     this.anteStart = 3,
     this.anteType = 'bb',
+    this.insertBreaks = true,
+    this.breakInterval = 4,
+    this.breakDuration = 15,
   });
 }
 
@@ -78,8 +91,12 @@ class StructureGenerator {
     return 0;
   }
 
-  /// Generates a list of [BlindLevel] entries based on [opts].
-  static List<BlindLevel> generate(StructureGeneratorOptions opts) {
+  /// Generates a structure (mix of [BlindLevel] and [BreakLevel]) based on [opts].
+  ///
+  /// Breaks are inserted after every [StructureGeneratorOptions.breakInterval]
+  /// blind levels when [StructureGeneratorOptions.insertBreaks] is true. A break
+  /// is never appended after the very last blind level.
+  static List<dynamic> generate(StructureGeneratorOptions opts) {
     var levelDur = opts.levelDuration;
     if (levelDur <= 0) {
       levelDur = calcLevelDuration(opts.playTime, opts.numPlayers);
@@ -91,8 +108,10 @@ class StructureGenerator {
     var startBb = roundToNice(opts.startChips / 100, opts.minChip);
     startBb = max(opts.minChip, startBb);
 
-    final List<BlindLevel> levels = [];
+    final List<dynamic> result = [];
     var bb = startBb;
+
+    final interval = opts.breakInterval > 0 ? opts.breakInterval : 1;
 
     for (int i = 0; i < totalLevels; i++) {
       final levelNum = i + 1;
@@ -103,7 +122,7 @@ class StructureGenerator {
         ante = calcAnte(bb, sb, opts.anteType, opts.minChip);
       }
 
-      levels.add(BlindLevel(
+      result.add(BlindLevel(
         level: levelNum,
         smallBlind: sb,
         bigBlind: bb,
@@ -111,11 +130,18 @@ class StructureGenerator {
         durationMinutes: levelDur,
       ));
 
+      // Insert a break after every `interval` blind levels, but never after
+      // the last level.
+      final isLast = i == totalLevels - 1;
+      if (opts.insertBreaks && !isLast && levelNum % interval == 0) {
+        result.add(BreakLevel(durationMinutes: opts.breakDuration));
+      }
+
       // Early/middle 1.5×, late/final 1.6×.
       final multiplier = i < totalLevels * 0.5 ? 1.5 : 1.6;
       bb = roundToNice(bb * multiplier, opts.minChip);
     }
 
-    return levels;
+    return result;
   }
 }
